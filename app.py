@@ -3,6 +3,9 @@ import uuid
 from flask import Flask, render_template_string, request, jsonify, send_from_directory
 from rembg import remove
 from PIL import Image
+import cv2
+import numpy as np
+from skimage import filters, exposure
 from g4f.client import Client
 
 app = Flask(__name__)
@@ -1140,7 +1143,7 @@ PENCIL_HTML_TEMPLATE = '''
                 }
             }, 50);
             
-            fetch('/', {
+            fetch('/pencil-generator', {
                 method: 'POST',
                 body: formData
             })
@@ -1267,6 +1270,56 @@ def bg_remove():
 
         return jsonify({'error': 'Invalid file type'})
 
+    return render_template_string(HTML_TEMPLATE)
+
+def convert_to_pencil_sketches(image_path, cv2_output_path, scikit_output_path):
+    """
+    Reads the input image in grayscale and creates two pencil sketch outputs:
+    1. A sketch using only OpenCV (cv2.divide).
+    2. An enhanced sketch that further applies scikit‑image’s Sobel filter and gamma adjustment,
+       then inverts the result so that pencil strokes appear dark on a white background.
+    """
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        return
+
+    # ----- CV2-only pencil sketch -----
+    img_inv = 255 - img
+    blurred = cv2.GaussianBlur(img_inv, (21, 21), 0)
+    sketch_cv2 = cv2.divide(img, 255 - blurred, scale=256)
+    cv2.imwrite(cv2_output_path, sketch_cv2)
+
+    # ----- Enhanced sketch (CV2 + scikit‑image) -----
+    edge_map = filters.sobel(sketch_cv2)
+    edge_map = exposure.adjust_gamma(edge_map, gamma=0.8)
+    inverted = 1 - np.clip(edge_map, 0, 1)
+    sketch_scikit = (inverted * 255).astype(np.uint8)
+    cv2.imwrite(scikit_output_path, sketch_scikit)
+
+@app.route("/pencil-generator", methods=["GET", "POST"])
+def upload_file():
+    if request.method == "POST":
+        if 'file' not in request.files:
+            return jsonify(error="No file part")
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify(error="No selected file")
+        if file and allowed_file(file.filename):
+            filename = file.filename
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+
+            cv2_filename = "cv2_" + filename
+            scikit_filename = "enhanced_" + filename
+            cv2_path = os.path.join(app.config['UPLOAD_FOLDER'], cv2_filename)
+            scikit_path = os.path.join(app.config['UPLOAD_FOLDER'], scikit_filename)
+
+            convert_to_pencil_sketches(file_path, cv2_path, scikit_path)
+
+            # Return JSON response with filenames
+            return jsonify(input_image=filename, cv2_image=cv2_filename, scikit_image=scikit_filename)
+        else:
+            return jsonify(error="Invalid file type")
     return render_template_string(HTML_TEMPLATE)
 
 @app.route('/uploads/<filename>')
