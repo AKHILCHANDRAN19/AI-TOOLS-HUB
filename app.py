@@ -128,8 +128,8 @@ home_html = """
                 <img src="https://img.icons8.com/clouds/100/000000/background-remover.png" alt="AI bg remover">
                 <p>AI Bg Remover</p>
             </div>
-            <div class="tool-box" onclick="redirectTo('/pencil_sketch')>
-                <img src="https://img.icons8.com/clouds/100/000000/brain.png" alt="AI Analysis">
+            <div class="tool-box" onclick="redirectTo('/pencil-sketch')>
+                <img src="https://img.icons8.com/clouds/100/000000/brain.png" alt="AI Drawing">
                 <p>AI Drawing Generator</p>
             </div>
         </div>
@@ -1192,7 +1192,7 @@ def ai_image():
 def remove_background():
     return render_template_string(BGREMOVER_HTML_TEMPLATE)
 
-@app.route("/pencil_sketch")
+@app.route("/pencil-sketch")
 def pencil_sketch():
     return render_template_string(PENCIL_HTML_TEMPLATE)
 
