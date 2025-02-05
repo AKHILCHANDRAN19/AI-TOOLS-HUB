@@ -1561,6 +1561,10 @@ def remove_background():
 def pencil_sketch():
     return render_template_string(PENCIL_HTML_TEMPLATE)
 
+@app.route("/chat-assistant")
+def pencil_sketch():
+    return render_template_string(CHAT_HTML_TEMPLATE)
+
 @app.route('/generate-image')
 def generate_image():
     prompt = request.args.get('prompt', '')
@@ -1700,6 +1704,16 @@ def delete_file(filename):
         return '', 204
     except Exception as e:
         return jsonify({'error': f'Error deleting file: {str(e)}'}), 500
+
+
+@app.route('/ask', methods=['POST'])
+def ask():
+    data = request.json
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": data['question']}],
+    )
+    return jsonify({'response': response.choices[0].message.content})
         
 if __name__ == '__main__':
     app.run(debug=True)
