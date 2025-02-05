@@ -1562,7 +1562,7 @@ def pencil_sketch():
     return render_template_string(PENCIL_HTML_TEMPLATE)
 
 @app.route("/chat-assistant")
-def pencil_sketch():
+def chat_assistant():
     return render_template_string(CHAT_HTML_TEMPLATE)
 
 @app.route('/generate-image')
