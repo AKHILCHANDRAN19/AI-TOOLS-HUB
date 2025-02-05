@@ -128,7 +128,7 @@ home_html = """
                 <img src="https://img.icons8.com/clouds/100/000000/background-remover.png" alt="AI bg remover">
                 <p>AI Bg Remover</p>
             </div>
-            <div class="tool-box" onclick="redirectTo('/pencil-sketch')>
+            <div class="tool-box" onclick="redirectTo('/pencil-sketch')">
                 <img src="https://img.icons8.com/clouds/100/000000/brain.png" alt="AI Drawing">
                 <p>AI Drawing Generator</p>
             </div>
