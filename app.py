@@ -132,6 +132,10 @@ home_html = """
                 <img src="https://img.icons8.com/clouds/100/000000/brain.png" alt="AI Drawing">
                 <p>AI Drawing Generator</p>
             </div>
+            <div class="tool-box" onclick="redirectTo('/chat-assistant')">
+                <img src="https://img.icons8.com/clouds/100/000000/chat.png" alt="AI Chating">
+                <p>AI chat Assistant</p>
+            </div>
         </div>
     </div>
 
@@ -1179,6 +1183,367 @@ PENCIL_HTML_TEMPLATE = '''
 </body>
 </html>
 '''
+
+CHAT_HTML_TEMPLATE = r"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Chat Platform</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Root Variables */
+        :root {
+            --primary-bg: #1a1c1e;
+            --secondary-bg: #2d3436;
+            --accent-color: #3498db;
+            --text-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --success-color: #2ecc71;
+            --code-bg: #2f3640;
+            --border-color: #34495e;
+        }
+
+        /* Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        /* Chat Container */
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--secondary-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Header */
+        .chat-header {
+            background: var(--primary-bg);
+            padding: 15px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chat-header h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: var(--text-light);
+        }
+
+        /* Messages Area */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Message Bubbles */
+        .message {
+            max-width: 85%;
+            padding: 12px 15px;
+            border-radius: 15px;
+            position: relative;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background: var(--accent-color);
+            color: var(--text-light);
+            margin-left: auto;
+        }
+
+        .bot-message {
+            background: var(--primary-bg);
+            color: var(--text-light);
+            margin-right: auto;
+            padding-right: 40px;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            color: var(--text-light);
+            font-family: 'Courier New', monospace;
+            padding-top: 20px;
+        }
+
+        /* Copy Buttons */
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--accent-color);
+            color: var(--text-light);
+            border: none;
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0.9;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .copy-btn:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        /* Loading Animation */
+        .loading-container {
+            display: none;
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            background: var(--primary-bg);
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 100;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Input Area */
+        .input-container {
+            padding: 15px;
+            background: var(--primary-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            position: sticky;
+            bottom: 0;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            background: var(--secondary-bg);
+            color: var(--text-light);
+            font-size: 16px;
+            min-width: 0;
+        }
+
+        #user-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .send-btn {
+            padding: 10px 20px;
+            background: var(--accent-color);
+            border: none;
+            border-radius: 25px;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            background: #2980b9;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 576px) {
+            .chat-container {
+                height: calc(100vh - 20px);
+                margin: 10px 0;
+            }
+
+            .message {
+                max-width: 90%;
+                font-size: 0.95em;
+            }
+
+            .send-btn {
+                padding: 10px 15px;
+            }
+
+            .input-container {
+                padding: 10px;
+            }
+
+            #user-input {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>AI Assistant</h1>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        
+        <!-- Loading Animation -->
+        <div class="loading-container" id="loading">
+            <div class="loading-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Utility function for copying text
+        function copyText(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    const copyBtn = event.target;
+                    copyBtn.textContent = 'Copied!';
+                    copyBtn.style.background = '#2ecc71';
+                    
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy';
+                        copyBtn.style.background = '';
+                    }, 1500);
+                })
+                .catch(err => {
+                    console.error('Copy failed:', err);
+                    alert('Failed to copy text');
+                });
+        }
+
+        // Function to create and add messages
+        function addMessage(message, isUser) {
+            const chatMessages = document.getElementById('chat-messages');
+            const paragraphs = message.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            let messageHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+            
+            // Handle code blocks
+            messageHTML = messageHTML.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
+                const safeCode = codeContent.replace(/`/g, '\\`')
+                    .replace(/\$/g, '\\$');
+                return `
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyText(\`${safeCode}\`)">Copy code</button>
+                        <pre><code>${codeContent}</code></pre>
+                    </div>`;
+            });
+            
+            const container = document.createElement('div');
+            container.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            container.innerHTML = `<div class="message-content">${messageHTML}</div>`;
+            
+            // Add copy button only for bot messages
+            if (!isUser) {
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.textContent = 'Copy';
+                copyBtn.onclick = () => {
+                    const contentDiv = container.querySelector('.message-content');
+                    copyText(contentDiv.textContent.trim());
+                };
+                container.appendChild(copyBtn);
+            }
+            
+            chatMessages.appendChild(container);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Function to handle message sending
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            const loading = document.getElementById('loading');
+            
+            if (!message) return;
+            
+            userInput.value = '';
+            addMessage(message, true);
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: message })
+                });
+                
+                if (!response.ok) throw new Error('Server error');
+                
+                const data = await response.json();
+                addMessage(data.response, false);
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Sorry, there was an error processing your request.', false);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Event listener for Enter key
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
+"""
 
 @app.route("/")
 def home():
