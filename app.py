@@ -118,7 +118,7 @@ home_html = """
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to AI Tools Hub \nDesigned by Akhil chandran</h1>
+        <h1>Welcome to AI Tools Hub Designed by Akhil chandran</h1>
         <div class="tools">
             <div class="tool-box" onclick="redirectTo('/ai-image')">
                 <img src="https://img.icons8.com/ios/100/000000/artificial-intelligence.png" alt="AI Image">
