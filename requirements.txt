@@ -1,0 +1,9 @@
+Flask
+rembg
+Pillow
+opencv-python
+numpy
+scikit-image
+g4f
+onnxruntime
+gunicorn
