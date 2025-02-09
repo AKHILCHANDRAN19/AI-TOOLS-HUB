@@ -1,5 +1,5 @@
 Flask
-rembg[cpu]
+rembg
 Pillow
 opencv-python
 numpy
