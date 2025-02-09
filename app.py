@@ -119,6 +119,7 @@ home_html = """
 <body>
     <div class="container">
         <h1>Welcome to AI Tools Hub</h1>
+        <h2>Designed by Akhil Chandran</h2>
         <div class="tools">
             <div class="tool-box" onclick="redirectTo('/ai-image')">
                 <img src="https://img.icons8.com/ios/100/000000/artificial-intelligence.png" alt="AI Image">
